@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Guess the Fruit Quiz</title>
+  <style>
+    .quiz-container {
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    .options {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .option {
+      margin: 0 10px;
+    }
+    .image {
+      max-width: 300px;
+      margin-bottom: 10px;
+    }
+    .clue {
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+    .feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .slider-container {
+      width: 300px;
+      margin: 0 auto;
+    }
+  
+    .slider {
+      width: 100%;
+      display: inline-block;
+    }
+  
+    p {
+      display: inline;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container" id="quiz-container">
+    <h1>Guess the Fruit Quiz</h1>
+    <div class="slider-container">
+      <input type="range" min="0" max="50" value="10" class="slider" id="questionsSlider">
+      <p>Questions: <span id="questionsValue"></span></p>
+    </div>
+    <div id="question-container"></div>
+    <div id="timer"></div>
+    <div id="feedback-container" class="feedback"></div>
+    <button id="start-button" onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <script>
+    // Array of questions and answers
+var questions = [
+  {
+    image: "acai.jfif",
+    options: ["Acai", "Banana", "Orange", "Pear"],
+    answer: 0,
+    clue: "It's a small, dark purple fruit native to the Amazon rainforest."
+  },
+  {
+    image: "apple.jfif",
+    options: ["Apple", "Banana", "Orange", "Pear"],
+    answer: 0,
+    clue: "It's a round and red fruit that keeps the doctor away."
+  },
+  {
+    image: "apricot.jfif",
+    options: ["Apricot", "Cherry", "Peach", "Kiwi"],
+    answer: 0,
+    clue: "It's a small, round fruit with a velvety skin and a sweet taste."
+  },
+  {
+    image: "asianpear.jfif",
+    options: ["Grapefruit", "Asian Pear", "Papaya", "Watermelon"],
+    answer: 1,
+    clue: "It's a juicy fruit with a crisp texture and a pear-like flavor."
+  },
+  {
+    image: "avocado.jfif",
+    options: ["Grapefruit", "Avocado", "Papaya", "Watermelon"],
+    answer: 1,
+    clue: "It's a creamy fruit with a large seed in the center."
+  },
+  {
+    image: "banana.jfif",
+    options: ["Lemon", "Apple", "Banana", "Grapes"],
+    answer: 2,
+    clue: "It's a long and curved fruit that monkeys love."
+  },
+  {
+    image: "blackberry.jfif",
+    options: ["Blueberry", "Blackberry", "Raspberry", "Strawberry"],
+    answer: 1,
+    clue: "It's a small, dark fruit that grows on thorny bushes."
+  },
+  {
+    image: "bloodorange.jfif",
+    options: ["Orange", "Strawberry", "Banana", "Blood Orange"],
+    answer: 3,
+    clue: "It's a citrus fruit with a deep red or purple flesh."
+  },
+  {
+    image: "blueberry.jfif",
+    options: ["Blueberry", "Cherry", "Plum", "Watermelon"],
+    answer: 0,
+    clue: "It's a small, round fruit with a blue color and a sweet taste."
+  },
+  {
+    image: "buddhashand.jfif",
+    options: ["Grapefruit", "Buddha's Hand", "Pomegranate", "Watermelon"],
+    answer: 1,
+    clue: "It's a citrus fruit with long, finger-like segments."
+  },
+  {
+    image: "cashewapple.jfif",
+    options: ["Fig", "Grapefruit", "Cashew Apple", "Orange"],
+    answer: 2,
+    clue: "It's the swollen, fleshy part of the cashew seed."
+  },
+  {
+    image: "cherimoya.jfif",
+    options: ["Cherimoya", "Grapefruit", "Lemon", "Orange"],
+    answer: 0,
+    clue: "It's a tropical fruit with a green, scaly skin and creamy, sweet flesh."
+  },
+  {
+    image: "cherry.jfif",
+    options: ["Cherry", "Grapefruit", "Orange", "Pomegranate"],
+    answer: 0,
+    clue: "It's a small, round fruit that comes in various colors and flavors."
+  },
+  {
+    image: "cloudberry.jfif",
+    options: ["Cloudberry", "Fig", "Peach", "Zucchini"],
+    answer: 0,
+    clue: "It's a yellow-orange fruit that grows in cold, northern regions."
+  },
+  {
+    image: "coconut.jfif",
+    options: ["Coconut", "Grapes", "Mango", "Pear"],
+    answer: 0,
+    clue: "It's a large fruit with a hard, hairy shell and sweet, refreshing water inside."
+  },
+  {
+    image: "cranberry.jfif",
+    options: ["Cranberry", "Grapefruit", "Lemon", "Pomegranate"],
+    answer: 0,
+    clue: "It's a small, tart fruit commonly used in sauces and beverages."
+  },
+  {
+    image: "custardapple.jfif",
+    options: ["Custard Apple", "Grapefruit", "Lemon", "Orange"],
+    answer: 0,
+    clue: "It's a tropical fruit with creamy, custard-like flesh and black seeds."
+  },
+  {
+    image: "damson.jfif",
+    options: ["Grapefruit", "Lemon", "Damson", "Tangerine"],
+    answer: 2,
+    clue: "It's a small, dark purple fruit similar to a plum."
+  },
+  {
+    image: "date.jfif",
+    options: ["Cherry", "Date", "Raisin", "Pomegranate"],
+    answer: 1,
+    clue: "It's a sweet fruit that grows on palm trees."
+  },
+  {
+    image: "dragonfruit.jfif",
+    options: ["Dragon Fruit", "Kiwi", "Mango", "Watermelon"],
+    answer: 0,
+    clue: "It's a vibrant fruit with a unique appearance and white, red, or pink flesh."
+  },
+  {
+    image: "durian.jfif",
+    options: ["Durian", "Grapes", "Mango", "Pear"],
+    answer: 0,
+    clue: "It's a large fruit known for its strong smell and spiky outer shell."
+  },
+  {
+    image: "elderberry.jfif",
+    options: ["Blackberry", "Elderberry", "Raspberry", "Strawberry"],
+    answer: 1,
+    clue: "It's a small, dark fruit that grows in clusters and is often used in jams and wines."
+  },
+  {
+    image: "eggplant.jfif",
+    options: ["Eggplant", "Papaya", "Watermelon", "Zucchini"],
+    answer: 0,
+    clue: "It's a fruit that is often cooked and used in various dishes."
+  },
+  {
+    image: "fig.jfif",
+    options: ["Fig", "Grapefruit", "Lemon", "Orange"],
+    answer: 0,
+    clue: "It's a small, sweet fruit with a soft flesh and many tiny seeds."
+  },
+  {
+    image: "gooseberry.jfif",
+    options: ["Blueberry", "Gooseberry", "Raspberry", "Strawberry"],
+    answer: 1,
+    clue: "It's a small, tart fruit that grows on bushes."
+  },
+  {
+    image: "grapefruit.jfif",
+    options: ["Tangerine", "Strawberry", "Banana", "Grapefruit"],
+    answer: 3,
+    clue: "It's a citrus fruit with a tangy and slightly bitter taste."
+  },
+  {
+    image: "grapes.jfif",
+    options: ["Apple", "Grapes", "Orange", "Pear"],
+    answer: 1,
+    clue: "They are small, round fruits that grow in clusters and come in different colors."
+  },
+  {
+    image: "groundcherry.jfif",
+    options: ["Ground Cherry", "Kiwi", "Lemon", "Pomegranate"],
+    answer: 0,
+    clue: "It's a small, yellow-orange fruit enclosed in a papery husk."
+  },
+  {
+    image: "grewia.jfif",
+    options: ["Fig", "Grapefruit", "Grewia", "Orange"],
+    answer: 2,
+    clue: "It's a small fruit that comes in various colors and is often used in desserts."
+  },
+  {
+    image: "honeydew.jfif",
+    options: ["Cantaloupe", "Honeydew", "Pineapple", "Watermelon"],
+    answer: 1,
+    clue: "It's a large, round fruit with a green rind and sweet, juicy flesh."
+  },
+  {
+    image: "jackfruit.jfif",
+    options: ["Fig", "Grapefruit", "Jackfruit", "Orange"],
+    answer: 2,
+    clue: "It's a tropical fruit known for its large size and sweet, fibrous flesh."
+  },
+  {
+    image: "kiwi.jfif",
+    options: ["Tangerine", "Strawberry", "Kiwi", "Pomegranate"],
+    answer: 2,
+    clue: "It's a small fruit with a fuzzy brown exterior and a bright green interior."
+  },
+  {
+    image: "kumquat.jfif",
+    options: ["Kumquat", "Orange", "Lemon", "Tangerine"],
+    answer: 0,
+    clue: "It's a small citrus fruit that can be eaten whole, including the peel."
+  },
+  {
+    image: "lemon.jfif",
+    options: ["Tangerine", "Strawberry", "Lemon", "Pomegranate"],
+    answer: 2,
+    clue: "It's a yellow citrus fruit with a sour taste."
+  },
+  {
+    image: "lime.jfif",
+    options: ["Lime", "Mango", "Orange", "Pomegranate"],
+    answer: 0,
+    clue: "It's a small, green citrus fruit known for its acidic and tangy flavor."
+  },
+  {
+    image: "longan.jfif",
+    options: ["Grapefruit", "Lemon", "Longan", "Orange"],
+    answer: 2,
+    clue: "It's a small, round fruit with a translucent flesh and a sweet taste."
+  },
+  {
+    image: "lychee.jfif",
+    options: ["Grapefruit", "Lemon", "Lychee", "Orange"],
+    answer: 2,
+    clue: "It's a tropical fruit with a rough, red rind and juicy, white flesh."
+  },
+  {
+    image: "mango.jfif",
+    options: ["Grapefruit", "Mango", "Lemon", "Orange"],
+    answer: 1,
+    clue: "It's a tropical fruit known for its sweet and juicy flesh."
+  },
+  {
+    image: "melon.jfif",
+    options: ["Cantaloupe", "Honeydew", "Melon", "Watermelon"],
+    answer: 2,
+    clue: "It's a large fruit with a juicy flesh and a sweet taste."
+  },
+  {
+    image: "mulberry.jfif",
+    options: ["Blackberry", "Mulberry", "Raspberry", "Strawberry"],
+    answer: 1,
+    clue: "It's a small, dark fruit that grows on trees and is often used in pies and jams."
+  },
+  {
+    image: "muskmelon.jfif",
+    options: ["Cantaloupe", "Honeydew", "Muskmelon", "Watermelon"],
+    answer: 2,
+    clue: "It's a type of melon with a sweet aroma and orange flesh."
+  },	
+  {
+    image: "nectarine.jfif",
+    options: ["Nectarine", "Orange", "Papaya", "Watermelon"],
+    answer: 0,
+    clue: "It's a juicy fruit similar to a peach but with a smooth skin."
+  },
+  {
+    image: "olive.jfif",
+    options: ["Grapefruit", "Lemon", "Olive", "Orange"],
+    answer: 2,
+    clue: "It's a small fruit commonly used to produce olive oil."
+  },
+  {
+    image: "orange.jfif",
+    options: ["Tangerine", "Strawberry", "Banana", "Orange"],
+    answer: 3,
+    clue: "Its skin is typically orange and can be peeled easily."
+  },
+  {
+    image: "papaya.jfif",
+    options: ["Grapefruit", "Lemon", "Papaya", "Watermelon"],
+    answer: 2,
+    clue: "It's a tropical fruit with a sweet, orange flesh and black seeds."
+  },
+  {
+    image: "passionfruit.jfif",
+    options: ["Grapefruit", "Lemon", "Passion Fruit", "Orange"],
+    answer: 2,
+    clue: "It's a small, round fruit with a vibrant purple or yellow skin and tart, juicy pulp."
+  },
+  {
+    image: "peach.jfif",
+    options: ["Cherry", "Grapefruit", "Orange", "Peach"],
+    answer: 3,
+    clue: "It's a soft, juicy fruit with a fuzzy skin and a sweet taste."
+  },
+  {
+    image: "pear.jfif",
+    options: ["Apple", "Banana", "Orange", "Pear"],
+    answer: 3,
+    clue: "It's a sweet fruit that has a distinctive shape and a crisp texture."
+  },
+  {
+    image: "pineapple.jfif",
+    options: ["Grapefruit", "Lemon", "Pineapple", "Orange"],
+    answer: 2,
+    clue: "It's a tropical fruit with a spiky exterior and a sweet, juicy flesh."
+  },
+  {
+    image: "plum.jfif",
+    options: ["Cherry", "Grapefruit", "Orange", "Plum"],
+    answer: 3,
+    clue: "It's a small, round fruit with a smooth skin and a juicy, sweet or tart flesh."
+  },
+  {
+    image: "pomegranate.jfif",
+    options: ["Grapefruit", "Lemon", "Orange", "Pomegranate"],
+    answer: 3,
+    clue: "It's a fruit with a tough, leathery rind and many juicy, red seeds."
+  },
+  {
+    image: "pomelo.jfif",
+    options: ["Grapefruit", "Lemon", "Orange", "Pomelo"],
+    answer: 3,
+    clue: "It's a large citrus fruit with a thick rind and sweet, slightly acidic flesh."
+  },
+  {
+    image: "quince.jfif",
+    options: ["Grapefruit", "Lemon", "Orange", "Quince"],
+    answer: 3,
+    clue: "It's a yellow fruit that is hard and astringent when raw but turns sweet and fragrant when cooked."
+  },
+  {
+    image: "rambutan.jfif",
+    options: ["Lychee", "Mango", "Rambutan", "Dragon fruit"],
+    answer: 2,
+    clue: "It's a tropical fruit with a hairy red skin and sweet, juicy flesh."
+  },
+  {
+    image: "raspberry.jfif",
+    options: ["Blackberry", "Raspberry", "Strawberry", "Watermelon"],
+    answer: 1,
+    clue: "It's a small fruit with a bright red color and a sweet-tart taste."
+  },
+  {
+    image: "redcurrant.jfif",
+    options: ["Grapefruit", "Lemon", "Orange", "Red Currant"],
+    answer: 3,
+    clue: "It's a small, round fruit that grows in clusters and has a tart flavor."
+  },
+  {
+    image: "soursop.jfif",
+    options: ["Grapefruit", "Lemon", "Orange", "Soursop"],
+    answer: 3,
+    clue: "It's a tropical fruit with a spiky green skin and soft, white flesh."
+  },
+  {
+    image: "squash.jfif",
+    options: ["Cucumber", "Papaya", "Squash", "Zucchini"],
+    answer: 2,
+    clue: "It's a fruit that comes in various shapes and sizes, often used in savory dishes."
+  },
+  {
+    image: "strawberry.jfif",
+    options: ["Blackberry", "Raspberry", "Strawberry", "Watermelon"],
+    answer: 2,
+    clue: "It's a small, sweet fruit with a bright red color and seeds on the surface."
+  },
+  {
+    image: "sugarcane.jfif",
+    options: ["Cantaloupe", "Honeydew", "Sugarcane", "Watermelon"],
+    answer: 2,
+    clue: "It's a tall, fibrous stalk that is used to produce sugar and sweet juices."
+  },
+  {
+    image: "tamarind.jfif",
+    options: ["Grapefruit", "Lemon", "Orange", "Tamarind"],
+    answer: 3,
+    clue: "It's a fruit with a tangy and sweet pulp that is often used in cooking and beverages."
+  },
+  {
+    image: "tangerine.jfif",
+    options: ["Tangerine", "Strawberry", "Banana", "Orange"],
+    answer: 0,
+    clue: "It's a small citrus fruit with a bright orange color and a sweet taste."
+  },
+  {
+    image: "watermelon.jfif",
+    options: ["Cantaloupe", "Honeydew", "Watermelon", "Pineapple"],
+    answer: 2,
+    clue: "It's a large fruit with a green rind and juicy, red or pink flesh."
+  },
+  {
+    image: "whitecurrant.jfif",
+    options: ["Grapefruit", "Lemon", "Orange", "White Currant"],
+    answer: 3,
+    clue: "It's a small, round fruit that grows in clusters and has a sweet-tart flavor."
+  },
+  {
+    image: "zucchini.jfif",
+    options: ["Cucumber", "Papaya", "Squash", "Zucchini"],
+    answer: 3,
+    clue: "It's a summer squash that is often used in savory dishes and has a mild flavor."
+  }
+];
+
+const slider = document.getElementById("questionsSlider");
+const output = document.getElementById("questionsValue");
+
+output.textContent = slider.value;
+
+slider.oninput = function() {
+  output.textContent = this.value;
+};
+
+    var numQuestions = questions.length; // Number of questions
+    var numAttempts = numQuestions; // Number of attempts (same as number of questions)
+
+    var currentQuestion; // Current question index
+    var score; // Score
+    var timer;
+
+    function startQuiz() {
+      var startbutton = document.getElementById("start-button");
+      startbutton.style.display = "none";
+      var sliderContainer = document.querySelector(".slider-container");
+      sliderContainer.style.display = "none";
+      currentQuestion = 0;
+      score = 0;
+      shuffleQuestions(); // Shuffle the questions
+      showQuestion();
+      startTimer();
+    }
+
+    function shuffleQuestions() {
+      // Fisher-Yates Shuffle algorithm
+      for (var i = numQuestions - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = questions[i];
+        questions[i] = questions[j];
+        questions[j] = temp;
+      }
+    }
+
+    function showQuestion() {
+      var questionContainer = document.getElementById("question-container");
+      var question = questions[currentQuestion];
+
+      if (currentQuestion >= numAttempts) {
+        endQuiz();
+        return;
+      }
+
+      questionContainer.innerHTML = `
+        <div class="question">
+          <img src="${question.image}" class="image">
+        </div>
+        <div class="clue">
+          ${question.clue}
+        </div>
+        <div class="options">
+          ${question.options
+            .map(
+              (option, index) =>
+                `<button class="option" onclick="checkAnswer(${index})">${option}</button>`
+            )
+            .join("")}
+        </div>
+      `;
+    }
+
+    function checkAnswer(selectedOption) {
+      var question = questions[currentQuestion];
+      var feedbackContainer = document.getElementById("feedback-container");
+      var options = document.getElementsByClassName("option");
+
+      // Disable all options to prevent spamming
+      for (var i = 0; i < options.length; i++) {
+        options[i].disabled = true;
+      }
+
+      if (selectedOption === question.answer) {
+        score++;
+        feedbackContainer.textContent = "Correct answer!";
+      } else {
+        var correctAnswer = question.options[question.answer];
+        var indefiniteArticle = /^[aeiou]/i.test(correctAnswer) ? "an" : "a";
+        feedbackContainer.textContent = `Wrong answer! It was ${indefiniteArticle} ${correctAnswer}.`;
+      }
+
+      clearTimeout(timer);
+      currentQuestion++;
+      setTimeout(function() {
+        showQuestion();
+        startTimer();
+        feedbackContainer.textContent = "";
+
+        // Enable options for the new question
+        for (var i = 0; i < options.length; i++) {
+          options[i].disabled = false;
+        }
+      }, 1500);
+    }
+
+    function startTimer() {
+      var timeLeft = 10;
+      var timerElement = document.getElementById("timer");
+
+      timer = setInterval(function () {
+        timerElement.textContent = `Time left: ${timeLeft}s`;
+        timeLeft--;
+
+        if (timeLeft < 0) {
+          clearTimeout(timer);
+          currentQuestion++;
+          showQuestion();
+          startTimer();
+        }
+      }, 1000);
+    }
+
+    function endQuiz() {
+      var quizContainer = document.getElementById("quiz-container");
+
+      quizContainer.innerHTML = `
+        <h2>Quiz Ended</h2>
+        <p>Your Score: ${score} out of ${numAttempts}</p>
+      `;
+    }
+  </script>
+</body>
+</html>
